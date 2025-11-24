@@ -28,13 +28,20 @@ const Index = () => {
     toast.info("Running your code...");
 
     try {
-      const response = await fetch("http://localhost:8000/run", {
+      // Using Piston API for code execution (free, no setup required)
+      const response = await fetch("https://emkc.org/api/v2/piston/execute", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          code,
+          language: "python",
+          version: "3.10.0",
+          files: [
+            {
+              content: code,
+            },
+          ],
           stdin: customInput,
         }),
       });
@@ -44,21 +51,33 @@ const Index = () => {
       }
 
       const data = await response.json();
+      
+      const stdout = data.run.stdout || "";
+      const stderr = data.run.stderr || "";
+      
+      let status: "success" | "runtime_error" | "timeout" = "success";
+      if (stderr) {
+        status = "runtime_error";
+      }
+      if (data.run.signal === "SIGTERM") {
+        status = "timeout";
+      }
+
       setOutput({
-        stdout: data.stdout,
-        stderr: data.stderr,
-        status: data.status,
+        stdout,
+        stderr,
+        status,
       });
 
-      if (data.status === "success") {
+      if (status === "success") {
         toast.success("Code executed successfully!");
-      } else if (data.status === "runtime_error") {
+      } else if (status === "runtime_error") {
         toast.error("Runtime error occurred");
-      } else if (data.status === "timeout") {
+      } else if (status === "timeout") {
         toast.warning("Execution timed out");
       }
     } catch (error) {
-      toast.error("Backend server not reachable. Please start the API server.");
+      toast.error("Failed to execute code. Please try again.");
       console.error("Execution error:", error);
     } finally {
       setIsRunning(false);
