@@ -1,73 +1,220 @@
-# Welcome to your Lovable project
+# AI Python Online Compiler
 
-## Project info
+A full-stack browser-based Python IDE with an integrated AI assistant. Write, run, and debug Python code with real-time execution and AI-powered help.
 
-**URL**: https://lovable.dev/projects/b3b4c082-38b2-4ef3-8689-2c5a5b70cc5c
+## Features
 
-## How can I edit this code?
+✨ **Code Editor**
+- Monaco Editor with Python syntax highlighting
+- Line numbers, auto-indent, and autocomplete
+- Dark theme optimized for coding
 
-There are several ways of editing your application.
+🚀 **Code Execution**
+- Run Python code directly in the browser
+- Custom stdin input support
+- Real-time output display with error highlighting
+- 3-second timeout protection
 
-**Use Lovable**
+🤖 **AI Tutor**
+- Ask questions about your code
+- Get help with errors and debugging
+- Code improvement suggestions
+- Contextual assistance based on execution results
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/b3b4c082-38b2-4ef3-8689-2c5a5b70cc5c) and start prompting.
+## Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+**Frontend:**
+- React 18 + TypeScript
+- Vite for fast development
+- Monaco Editor for code editing
+- Tailwind CSS for styling
+- Shadcn UI components
 
-**Use your preferred IDE**
+**Backend:**
+- FastAPI (Python)
+- Subprocess for code execution
+- CORS enabled for frontend communication
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Prerequisites
+- Node.js 18+ and npm
+- Python 3.8+
+- pip
 
-Follow these steps:
+### Backend Setup
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+1. Navigate to the backend directory:
+```bash
+cd backend
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Install Python dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+3. Start the FastAPI server:
+```bash
+uvicorn main:app --reload --port 8000
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+The API will be available at `http://localhost:8000`
+
+### Frontend Setup
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The app will be available at `http://localhost:8080` (or the port shown in terminal)
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Usage
 
-**Use GitHub Codespaces**
+1. **Write Code**: Use the Monaco editor to write your Python code
+2. **Add Input**: Enter stdin values in the "Custom Input" textarea (optional)
+3. **Run Code**: Click the "Run Code" button to execute
+4. **View Output**: See stdout and stderr in the output console
+5. **Ask AI**: Use the AI Tutor panel to ask questions about your code
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Project Structure
 
-## What technologies are used for this project?
+```
+.
+├── backend/
+│   ├── main.py              # FastAPI application
+│   ├── requirements.txt     # Python dependencies
+│   └── README.md           # Backend documentation
+├── src/
+│   ├── components/
+│   │   ├── CodeEditor.tsx      # Monaco editor component
+│   │   ├── CustomInput.tsx     # Stdin input component
+│   │   ├── OutputConsole.tsx   # Output display component
+│   │   └── AiTutorPanel.tsx    # AI chat interface
+│   ├── pages/
+│   │   └── Index.tsx           # Main application layout
+│   └── index.css              # Design system and styles
+└── README.md
+```
 
-This project is built with:
+## API Endpoints
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### POST /run
+Execute Python code with optional stdin.
 
-## How can I deploy this project?
+**Request:**
+```json
+{
+  "code": "print('Hello, World!')",
+  "stdin": ""
+}
+```
 
-Simply open [Lovable](https://lovable.dev/projects/b3b4c082-38b2-4ef3-8689-2c5a5b70cc5c) and click on Share -> Publish.
+**Response:**
+```json
+{
+  "stdout": "Hello, World!\n",
+  "stderr": "",
+  "status": "success"
+}
+```
 
-## Can I connect a custom domain to my Lovable project?
+### POST /ask_ai
+Get AI assistance (currently placeholder).
 
-Yes, you can!
+**Request:**
+```json
+{
+  "code": "x = 10",
+  "question": "How do I improve this?",
+  "last_run": null
+}
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Integrating Real AI
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+The `/ask_ai` endpoint currently returns placeholder responses. To integrate a real LLM:
+
+1. Choose an AI provider (OpenAI, Anthropic, Google AI)
+2. Install the SDK: `pip install openai` (or equivalent)
+3. Update the `get_ai_answer` function in `backend/main.py`
+
+Example with OpenAI:
+```python
+from openai import OpenAI
+
+client = OpenAI(api_key="your-api-key")
+
+def get_ai_answer(code: str, question: str, last_run: Optional[dict]) -> str:
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[{
+            "role": "user",
+            "content": f"Code: {code}\nQuestion: {question}"
+        }]
+    )
+    return response.choices[0].message.content
+```
+
+See `backend/README.md` for detailed integration instructions.
+
+## Security Considerations
+
+⚠️ **This application executes arbitrary code. For production use:**
+
+1. **Containerization**: Run in Docker containers
+2. **Resource Limits**: Implement CPU/memory limits
+3. **Sandboxing**: Use code execution sandboxes
+4. **Authentication**: Add user authentication
+5. **Rate Limiting**: Prevent abuse with rate limits
+
+## Development
+
+**Backend:**
+- FastAPI with auto-reload: `uvicorn main:app --reload`
+- Change timeout in `main.py`: `timeout=3` parameter
+- Add more CORS origins as needed
+
+**Frontend:**
+- Hot reload enabled with Vite
+- Monaco editor theme: `vs-dark`
+- Design system in `src/index.css`
+
+## Troubleshooting
+
+**Backend not reachable:**
+- Ensure FastAPI is running on port 8000
+- Check CORS configuration in `main.py`
+
+**Monaco editor not loading:**
+- Clear browser cache
+- Check console for errors
+
+**Code execution timeout:**
+- Default is 3 seconds
+- Adjust in `backend/main.py` if needed
+
+## Contributing
+
+Contributions are welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## License
+
+MIT License - feel free to use this project for learning and development.
+
+## Acknowledgments
+
+- Monaco Editor by Microsoft
+- FastAPI by Sebastián Ramírez
+- Shadcn UI components
+- Tailwind CSS team
