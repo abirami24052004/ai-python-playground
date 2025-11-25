@@ -50,6 +50,20 @@ const CodeEditor = ({ code, onChange }: CodeEditorProps) => {
           });
         }
 
+        // Check for semicolons (not allowed in Python)
+        const semicolonMatch = /;(?!\s*$)/.exec(line);
+        if (semicolonMatch) {
+          const startColumn = semicolonMatch.index + 1;
+          markers.push({
+            severity: monaco.MarkerSeverity.Error,
+            startLineNumber: lineNumber,
+            startColumn,
+            endLineNumber: lineNumber,
+            endColumn: startColumn + 1,
+            message: "Syntax Error: Python does not use semicolons at the end of statements",
+          });
+        }
+
         // Check for common Python typos
         const typos = {
           'pritn': 'print',

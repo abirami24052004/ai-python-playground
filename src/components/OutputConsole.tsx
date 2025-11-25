@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 interface OutputConsoleProps {
   stdout: string;
   stderr: string;
-  status: "success" | "runtime_error" | "timeout" | null;
+  status: "success" | "runtime_error" | "timeout" | "syntax_error" | "io_error" | null;
   onClear: () => void;
 }
 
@@ -16,7 +16,9 @@ const OutputConsole = ({ stdout, stderr, status, onClear }: OutputConsoleProps) 
     
     const variants: Record<string, { label: string; className: string }> = {
       success: { label: "Success", className: "bg-success text-success-foreground" },
+      syntax_error: { label: "Syntax Error", className: "bg-destructive text-destructive-foreground" },
       runtime_error: { label: "Runtime Error", className: "bg-destructive text-destructive-foreground" },
+      io_error: { label: "I/O Error", className: "bg-destructive text-destructive-foreground" },
       timeout: { label: "Timeout", className: "bg-warning text-warning-foreground" },
     };
 

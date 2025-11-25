@@ -20,7 +20,7 @@ const Index = () => {
   const [output, setOutput] = useState({
     stdout: "",
     stderr: "",
-    status: null as "success" | "runtime_error" | "timeout" | null,
+    status: null as "success" | "runtime_error" | "timeout" | "syntax_error" | "io_error" | null,
   });
 
   const handleRunCode = async () => {
@@ -54,25 +54,54 @@ const Index = () => {
       
       const stdout = data.run.stdout || "";
       const stderr = data.run.stderr || "";
+      const signal = data.run.signal;
+      const exitCode = data.run.code;
       
-      let status: "success" | "runtime_error" | "timeout" = "success";
-      if (stderr) {
-        status = "runtime_error";
-      }
-      if (data.run.signal === "SIGTERM") {
+      // Categorize error types based on stderr content and exit code
+      let status: "success" | "runtime_error" | "timeout" | "syntax_error" | "io_error" = "success";
+      
+      // Check if execution timed out
+      if (signal === "SIGTERM" || signal === "SIGKILL") {
         status = "timeout";
+      } else if (stderr) {
+        // Categorize specific error types
+        if (stderr.includes("SyntaxError") || stderr.includes("IndentationError") || 
+            stderr.includes("TabError") || (exitCode === 1 && stderr.includes("Error: expected"))) {
+          status = "syntax_error";
+        } else if (stderr.includes("IOError") || stderr.includes("FileNotFoundError") || 
+                   stderr.includes("PermissionError") || stderr.includes("OSError")) {
+          status = "io_error";
+        } else {
+          status = "runtime_error";
+        }
+      }
+
+      // Format stderr with appropriate prefix
+      let formattedStderr = stderr;
+      if (status === "syntax_error") {
+        formattedStderr = "⚠️ Syntax Error - Fix your code before running:\n\n" + stderr;
+      } else if (status === "io_error") {
+        formattedStderr = "⚠️ I/O Error:\n\n" + stderr;
+      } else if (status === "runtime_error") {
+        formattedStderr = "⚠️ Runtime Error:\n\n" + stderr;
+      } else if (status === "timeout") {
+        formattedStderr = stderr + "\n[Execution timed out]";
       }
 
       setOutput({
         stdout,
-        stderr,
+        stderr: formattedStderr,
         status,
       });
 
       if (status === "success") {
         toast.success("Code executed successfully!");
+      } else if (status === "syntax_error") {
+        toast.error("Syntax error in your code");
       } else if (status === "runtime_error") {
         toast.error("Runtime error occurred");
+      } else if (status === "io_error") {
+        toast.error("I/O error occurred");
       } else if (status === "timeout") {
         toast.warning("Execution timed out");
       }
